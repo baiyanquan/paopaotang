@@ -19,9 +19,10 @@ class myscene : public cocos2d::Scene
 public:
 	static cocos2d::Scene* createScene();
 	virtual bool init();
-	//添加人物及透明化碰撞层到地图
+	//加载
 	void addPlayer(TMXTiledMap* map);
 	void addcollidable(TMXTiledMap* map);
+	void addbombdestroy(TMXTiledMap* map);
 	//炸弹位置补全之坐标转换
 	Point set_tile(int x, int y);
 	//人物移动控制及炸弹控制

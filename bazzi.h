@@ -3,6 +3,7 @@
 #include "cocos2d.h"
 #include "Bomb.h"
 #include "collidable.h"
+#include "bombdestroy.h"
 #include <math.h>
 USING_NS_CC;
 class bazzi
@@ -12,7 +13,12 @@ public:
 	TMXTiledMap* map;
 	Bomb my_bomb;
 	Collidable col;
+	Bombdestroy bod;
 	int my_bomb_range = 2;
+	int range_up = 0;
+	int range_down = 0;
+	int range_left = 0;
+	int range_right = 0;
 	int my_bomb_limits_quantity = 2;
 	float Positionx = 0;
 	float Positiony = 0;

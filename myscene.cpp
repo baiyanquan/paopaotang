@@ -27,6 +27,8 @@ bool myscene::init()
 	addPlayer(wo.map);
 	//加载碰撞层
 	addcollidable(wo.map);
+	//加载炸毁层
+	addbombdestroy(wo.map);
 
 	auto visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
@@ -79,6 +81,19 @@ void myscene::addcollidable(TMXTiledMap* map)
 	wo.col.meta = map->getLayer("meta");
 	wo.col.meta->setVisible(false);
 }
+void myscene::addbombdestroy(TMXTiledMap* map)
+{
+	wo.bod.meta =map->getLayer("meta");
+	wo.bod.meta->setVisible(false);
+	wo.bod.a_undestroy = map->getLayer("a_undestroy");
+	wo.bod.a_box = map->getLayer("a_box");
+	wo.bod.a_movebox =map->getLayer("a_movebox");
+	wo.bod.a_grass = map->getLayer("a_grass");
+	wo.bod.b_undestroy = map->getLayer("b_undestroy");
+	wo.bod.b_box =map->getLayer("b_box");
+	wo.bod.b_movebox =map->getLayer("b_movebox");
+	wo.bod.b_grass = map->getLayer("b_grass");
+}
 //按键控制函数
 void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event* event)
 {
@@ -124,7 +139,12 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 			y = newsp->getPositionY();
 			//炸弹计时判断加入碰撞层（可同时含多个炸弹计时器）
 			this->schedule(schedule_selector(myscene::bomb_update), 0.05f);
-			for (int i = 1; i <= wo.my_bomb_range; ++i)
+
+			wo.range_up = wo.bod.bomb_up(x, y, wo.my_bomb_range);
+			wo.range_down = wo.bod.bomb_down(x, y, wo.my_bomb_range);
+			wo.range_left = wo.bod.bomb_left(x, y, wo.my_bomb_range);
+			wo.range_right = wo.bod.bomb_right(x, y, wo.my_bomb_range);
+			for (int i = 1; i <= wo.range_up; ++i)
 			{
 				//炸波定位,下同
 				wo.my_bomb.sprites_up[i - 1]->setPosition(Vec2(x, y) + Vec2(0, 40 * i));
@@ -137,7 +157,7 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 
 				wo.my_bomb.sprites_up[i - 1]->runAction(Hide::create());
 			}
-			for (int i = 1; i <= wo.my_bomb_range; ++i)
+			for (int i = 1; i <= wo.range_down; ++i)
 			{
 				wo.my_bomb.sprites_down[i - 1]->setPosition(Vec2(x, y) + Vec2(0, -40 * i));
 				wo.my_bomb.sprites_down[i - 1]->setAnchorPoint(Point(0, 0));
@@ -145,7 +165,7 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 				wo.map->addChild(wo.my_bomb.sprites_down[i - 1], 4);
 				wo.my_bomb.sprites_down[i - 1]->runAction(Hide::create());
 			}
-			for (int i = 1; i <= wo.my_bomb_range; ++i)
+			for (int i = 1; i <= wo.range_left; ++i)
 			{
 				wo.my_bomb.sprites_left[i - 1]->setPosition(Vec2(x, y) + Vec2(-40 * i, 0));
 				wo.my_bomb.sprites_left[i - 1]->setAnchorPoint(Point(0, 0));
@@ -153,7 +173,7 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 				wo.map->addChild(wo.my_bomb.sprites_left[i - 1], 4);
 				wo.my_bomb.sprites_left[i - 1]->runAction(Hide::create());
 			}
-			for (int i = 1; i <= wo.my_bomb_range; ++i)
+			for (int i = 1; i <= wo.range_right; ++i)
 			{
 				wo.my_bomb.sprites_right[i - 1]->setPosition(Vec2(x, y) + Vec2(40 * i, 0));
 				wo.my_bomb.sprites_right[i - 1]->setAnchorPoint(Point(0, 0));

@@ -109,11 +109,16 @@ void bazzi::moveleft_action()
 //ËÀÍö
 void bazzi::blown(float x, float y)
 {
+	//Õ¨»Ù
+	bod.bombdestroy((int)(x), (int)(y), my_bomb_range);
 	//³·ÏúÕ¨µ¯Åö×²
 	if (col.meta->getTileGIDAt(Vec2((int)(x) / 40, 12 - (int)(y) / 40)) == 4)
 		col.meta->removeTileAt(Vec2((int)(x) / 40, 12 - (int)(y) / 40));
-	//ËÀÍö¶¯»­
-	if (((abs(x - renwu->getPositionX()) <= my_bomb_range * 40) && (abs(y - renwu->getPositionY()) <= 30)) || ((abs(y - renwu->getPositionY()) <= my_bomb_range * 40) && (abs(x - renwu->getPositionX()) <= 30)))
+	//ËÀÍö
+	if ((renwu->getPositionY()-y>=0&& renwu->getPositionY()-y <= range_up * 40 && abs(x - renwu->getPositionX()) <= 20)
+		|| (y-renwu->getPositionY()>=0&&y - renwu->getPositionY() <= range_down * 40 && abs(x - renwu->getPositionX()) <= 20)
+		||(x-renwu->getPositionX()>=0&&x - renwu->getPositionX() <= range_left * 40 && abs(y - renwu->getPositionY()) <= 20)
+		|| (renwu->getPositionX()-x>=0&&renwu->getPositionX() - x <= range_right * 40 && abs(y - renwu->getPositionY())<=20))
 	{
 		Animation* animation = Animation::create();
 		animation->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bazzi1.png"),
