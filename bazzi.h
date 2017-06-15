@@ -2,35 +2,41 @@
 #define __BAZZI_H__
 #include "cocos2d.h"
 #include "Bomb.h"
+#include "collidable.h"
 #include <math.h>
 USING_NS_CC;
 class bazzi
 {
 public:
 	Sprite *renwu = Sprite::create("bazzi1.png", CCRectMake(371, 97, 44, 56));
+	TMXTiledMap* map;
 	Bomb my_bomb;
-	int return_speed();
+	Collidable col;
 	int my_bomb_range = 2;
 	int my_bomb_limits_quantity = 2;
-	float Positionx=0;
-	float Positiony=0;
+	float Positionx = 0;
+	float Positiony = 0;
+
+	//移动
 	void moveup();
 	void moveup_action();
 	void movedown();
 	void movedown_action();
-	void moveleft(); 
+	void moveleft();
 	void moveleft_action();
 	void moveright();
 	void moveright_action();
-	void blown(float x, float y);
-	void die(float x,float y);
 	bool isMoving_up = false;
 	bool isMoving_down = false;
 	bool isMoving_left = false;
 	bool isMoving_right = false;
 	bool isMoving = false;
+	//速度接口
+	int return_speed();
+	//死亡
+	void blown(float x, float y);
+	void die(float x, float y);
 private:
-	int speed=1;
+	int speed = 5;
 };
 #endif
-

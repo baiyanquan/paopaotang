@@ -4,6 +4,7 @@
 
 USING_NS_CC;
 
+//ÒÆ¶¯
 void bazzi::moveup()
 {
 	auto a = MoveBy::create(0.01f, Vec2(0, return_speed()));
@@ -54,7 +55,11 @@ void bazzi::movedown_action()
 	renwu->runAction(b);
 	isMoving_down = true;
 }
-
+void bazzi::moveright()
+{
+	auto a = MoveBy::create(0.01f, Vec2(return_speed(), 0));
+	renwu->runAction(a);
+}
 void bazzi::moveright_action()
 {
 	Animation* animation = Animation::create();
@@ -75,12 +80,6 @@ void bazzi::moveright_action()
 	renwu->runAction(b);
 	isMoving_right = true;
 }
-void bazzi::moveright()
-{
-	auto a = MoveBy::create(0.01f, Vec2(return_speed(), 0));
-	renwu->runAction(a);
-}
-
 void bazzi::moveleft()
 {
 	auto a = MoveBy::create(0.01f, Vec2(-return_speed(), 0));
@@ -106,9 +105,15 @@ void bazzi::moveleft_action()
 	renwu->runAction(b);
 	isMoving_left = true;
 }
-void bazzi::blown(float x,float y)
+
+//ËÀÍö
+void bazzi::blown(float x, float y)
 {
-	if (((abs(x - renwu->getPositionX()) <= my_bomb_range * 40) && (abs(y - renwu->getPositionY()) <= 2.0)) || ((abs(y - renwu->getPositionY()) <= my_bomb_range * 40) && (abs(x - renwu->getPositionX()) <= 2.0)))
+	//³·ÏúÕ¨µ¯Åö×²
+	if (col.meta->getTileGIDAt(Vec2((int)(x) / 40, 12 - (int)(y) / 40)) == 4)
+		col.meta->removeTileAt(Vec2((int)(x) / 40, 12 - (int)(y) / 40));
+	//ËÀÍö¶¯»­
+	if (((abs(x - renwu->getPositionX()) <= my_bomb_range * 40) && (abs(y - renwu->getPositionY()) <= 30)) || ((abs(y - renwu->getPositionY()) <= my_bomb_range * 40) && (abs(x - renwu->getPositionX()) <= 30)))
 	{
 		Animation* animation = Animation::create();
 		animation->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bazzi1.png"),
@@ -136,13 +141,14 @@ void bazzi::blown(float x,float y)
 		renwu->runAction(Sequence::create(animate, NULL));
 	}
 }
+void bazzi::die(float x, float y)
+{
+	auto delayTime = DelayTime::create(2.0f);
+	renwu->runAction(Sequence::create(delayTime, CCCallFunc::create(CC_CALLBACK_0(bazzi::blown, this, x, y)), NULL));
+}
+
+//ËÙ¶È½Ó¿Ú
 int bazzi::return_speed()
 {
 	return speed;
 }
-void bazzi::die(float x, float y)
-{
-	auto delayTime = DelayTime::create(2.0f);
-	renwu->runAction(Sequence::create(delayTime, CCCallFunc::create(CC_CALLBACK_0(bazzi::blown,this,x,y)), NULL));
-}
-
