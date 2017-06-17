@@ -3,7 +3,8 @@
 #include "SimpleAudioEngine.h"
 
 USING_NS_CC;
-
+using namespace CocosDenshion;
+//ÒÆ¶¯
 void bazzi::moveup()
 {
 	auto a = MoveBy::create(0.01f, Vec2(0, return_speed()));
@@ -54,7 +55,11 @@ void bazzi::movedown_action()
 	renwu->runAction(b);
 	isMoving_down = true;
 }
-
+void bazzi::moveright()
+{
+	auto a = MoveBy::create(0.01f, Vec2(return_speed(), 0));
+	renwu->runAction(a);
+}
 void bazzi::moveright_action()
 {
 	Animation* animation = Animation::create();
@@ -75,12 +80,6 @@ void bazzi::moveright_action()
 	renwu->runAction(b);
 	isMoving_right = true;
 }
-void bazzi::moveright()
-{
-	auto a = MoveBy::create(0.01f, Vec2(return_speed(), 0));
-	renwu->runAction(a);
-}
-
 void bazzi::moveleft()
 {
 	auto a = MoveBy::create(0.01f, Vec2(-return_speed(), 0));
@@ -106,9 +105,20 @@ void bazzi::moveleft_action()
 	renwu->runAction(b);
 	isMoving_left = true;
 }
-void bazzi::blown(float x,float y)
+
+//ËÀÍö
+void bazzi::blown(float x, float y, int range_up, int range_down, int range_left, int range_right)
 {
-	if (((abs(x - renwu->getPositionX()) <= my_bomb_range * 40) && (abs(y - renwu->getPositionY()) <= 2.0)) || ((abs(y - renwu->getPositionY()) <= my_bomb_range * 40) && (abs(x - renwu->getPositionX()) <= 2.0)))
+	//Õ¨»Ù
+	bod.zhahui((int)(x), (int)(y), my_bomb_range);
+	//³·ÏúÕ¨µ¯Åö×²
+	if (col.meta->getTileGIDAt(Vec2((int)(x) / 40, 12 - (int)(y) / 40)) == 4)
+		col.meta->removeTileAt(Vec2((int)(x) / 40, 12 - (int)(y) / 40));
+	//ËÀÍö
+	if ((renwu->getPositionY() - y >= 0 && renwu->getPositionY() - y <= range_up * 40+20 && abs(x - renwu->getPositionX()) <= 20)
+		|| (y - renwu->getPositionY() >= 0 && y - renwu->getPositionY() <= range_down * 40+20 && abs(x - renwu->getPositionX()) <= 20)
+		|| (x - renwu->getPositionX() >= 0 && x - renwu->getPositionX() <= range_left * 40+20 && abs(y - renwu->getPositionY()) <= 20)
+		|| (renwu->getPositionX() - x >= 0 && renwu->getPositionX() - x <= range_right * 40+20 && abs(y - renwu->getPositionY()) <= 20))
 	{
 		Animation* animation = Animation::create();
 		animation->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bazzi1.png"),
@@ -134,15 +144,17 @@ void bazzi::blown(float x,float y)
 		animation->setLoops(1);
 		Animate* animate = Animate::create(animation);
 		renwu->runAction(Sequence::create(animate, NULL));
+		SimpleAudioEngine::getInstance()->playEffect("die.wav");
 	}
 }
+void bazzi::die(float x, float y, int range_up, int range_down, int range_left, int range_right)
+{
+	auto delayTime = DelayTime::create(2.0f);
+	renwu->runAction(Sequence::create(delayTime, CCCallFunc::create(CC_CALLBACK_0(bazzi::blown, this, x, y, range_up,  range_down, range_left, range_right)), NULL));
+}
+
+//ËÙ¶È½Ó¿Ú
 int bazzi::return_speed()
 {
 	return speed;
 }
-void bazzi::die(float x, float y)
-{
-	auto delayTime = DelayTime::create(2.0f);
-	renwu->runAction(Sequence::create(delayTime, CCCallFunc::create(CC_CALLBACK_0(bazzi::blown,this,x,y)), NULL));
-}
-

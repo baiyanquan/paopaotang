@@ -1,9 +1,9 @@
 #include "AppDelegate.h"
 #include "HelloWorldScene.h"
-
+#include "SimpleAudioEngine.h"
 // #define USE_AUDIO_ENGINE 1
 // #define USE_SIMPLE_AUDIO_ENGINE 1
-
+using namespace CocosDenshion;
 #if USE_AUDIO_ENGINE && USE_SIMPLE_AUDIO_ENGINE
 #error "Don't use AudioEngine and SimpleAudioEngine at the same time. Please just select one in your game!"
 #endif
@@ -57,6 +57,11 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // initialize director
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
+	SimpleAudioEngine::getInstance()->preloadBackgroundMusic("background.mp3");
+	SimpleAudioEngine::getInstance()->preloadBackgroundMusic("xiaoqu.mp3");
+	SimpleAudioEngine::getInstance()->preloadEffect("tick.wav");
+	SimpleAudioEngine::getInstance()->preloadEffect("put.wav");
+	SimpleAudioEngine::getInstance()->preloadEffect("bomb.mp3");
     if(!glview) {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC) || (CC_TARGET_PLATFORM == CC_PLATFORM_LINUX)
         glview = GLViewImpl::createWithRect("HelloWorld", cocos2d::Rect(0, 0, designResolutionSize.width, designResolutionSize.height));

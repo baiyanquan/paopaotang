@@ -1,7 +1,8 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
 USING_NS_CC;
-
+using namespace CocosDenshion;
+extern int hahaha;
 Scene* HelloWorld::createScene()
 {
 	auto scene = Scene::create();
@@ -30,21 +31,58 @@ bool HelloWorld::init()
 	startMenuItem->setScale(2.0f);
 	startMenuItem->setPosition(origin.x + visibleSize.width / 2, origin.y + visibleSize.height*3 / 4);
 	startMenuItem->setAnchorPoint(Vec2(0.5, 0.5));
-	Menu* mu = Menu::create(startMenuItem, NULL);
+	Sprite* settingSpriteNormal = Sprite::create("settingmenuitem.png", Rect(516, 58, 119, 30));
+	Sprite* settingSpriteSelected = Sprite::create("settingmenuitem.png", Rect(376, 58, 119, 30));
+	MenuItemSprite* settingMenuItem = MenuItemSprite::create(settingSpriteNormal, settingSpriteSelected, CC_CALLBACK_1(HelloWorld::menuItemSettingCallback, this));
+	settingMenuItem->setScale(2.0f);
+	settingMenuItem->setPosition(origin.x + visibleSize.width / 2, origin.y + visibleSize.height * 1 / 2);
+	settingMenuItem->setAnchorPoint(Vec2(0.5, 0.5));
+	Menu* mu = Menu::create(startMenuItem, settingMenuItem, NULL);
 	mu->setPosition(Vec2::ZERO);
 	this->addChild(mu);
+	this->scheduleUpdate();
 	return true;
+}
+void HelloWorld::update(float delta)
+{
+	SimpleAudioEngine::sharedEngine()->setBackgroundMusicVolume(hahaha*0.01);
 }
 void HelloWorld::menuItemStartCallback(Ref* pSender)
 {
 	auto sc = myscene::createScene();
 	auto reScene = TransitionShrinkGrow::create(1.0f, sc);
 	Director::getInstance()->pushScene(reScene);
+	SimpleAudioEngine::getInstance()->playEffect("tick.wav");
 }
-
-
-
-
+void HelloWorld::menuItemSettingCallback(Ref* pSender)
+{
+	auto sc = setting::createScene();
+	auto reScene = TransitionCrossFade::create(1.0f, sc);
+	Director::getInstance()->pushScene(reScene);
+	SimpleAudioEngine::getInstance()->playEffect("tick.wav");
+}
+void HelloWorld::onEnter()
+{
+	Layer::onEnter();
+}
+void HelloWorld::onEnterTransitionDidFinish()
+{
+	Layer::onEnterTransitionDidFinish();
+	SimpleAudioEngine::getInstance()->playBackgroundMusic("background.mp3", true);
+}
+void HelloWorld::onExit()
+{
+	Layer::onExit();
+}
+void HelloWorld::OnExitTransitionDidStart()
+{
+	Layer::onExitTransitionDidStart();
+}
+void HelloWorld::cleanup()
+{
+	Layer::cleanup();
+	SimpleAudioEngine::getInstance()->stopBackgroundMusic("background.mp3");
+}
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     exit(0);
 #endif

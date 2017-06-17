@@ -1,15 +1,15 @@
-#ifndef __BAZZI_H__
-#define __BAZZI_H__
+#ifndef __BAZZI2_H__
+#define __BAZZI2_H__
 #include "cocos2d.h"
 #include "Bomb.h"
 #include "collidable.h"
 #include "bombdestroy.h"
 #include <math.h>
 USING_NS_CC;
-class bazzi
+class bazzi2
 {
 public:
-	Sprite *renwu = Sprite::create("bazzi1.png", CCRectMake(371, 97, 44, 56));
+	Sprite *renwu = Sprite::create("bazzi3.png", CCRectMake(371, 97, 44, 56));
 	Bomb my_bomb;
 	Collidable col;
 	Bombdestroy bod;
@@ -36,7 +36,7 @@ public:
 	int return_speed();
 	//À¿Õˆ
 	void blown(float x, float y, int range_up, int range_down, int range_left, int range_right);
-	void die(float x, float y,int range_up,int range_down,int range_left,int range_right);
+	void die(float x, float y, int range_up, int range_down, int range_left, int range_right);
 private:
 	int speed = 5;
 };

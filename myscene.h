@@ -6,38 +6,53 @@
 #include<math.h>
 #include<map>
 #include<string>
-using namespace cocos2d;
+#include<bazzi2.h>
+USING_NS_CC;
 class myscene : public cocos2d::Scene
 {
-	//声明地图成员
-	TMXTiledMap* map;
-	//声明人物成员
 	bazzi wo;
-	std::map<cocos2d::EventKeyboard::KeyCode, bool> keys = { { EventKeyboard::KeyCode::KEY_RIGHT_ARROW,false },{ EventKeyboard::KeyCode::KEY_LEFT_ARROW,false },{ EventKeyboard::KeyCode::KEY_UP_ARROW,false },{ EventKeyboard::KeyCode::KEY_DOWN_ARROW,false } };
+	bazzi2 ta;
+	TMXTiledMap* map;
+	std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
+	LabelTTF* mytime;
+	//倒计时叠减
+	float ptime = 150.0f;
+	//炸弹计时叠加
+	float btime = 0.0f;
+	float btime2 = 0.0f;
 public:
-	static cocos2d::Scene* createScene();
-
+	static myscene* createScene();
 	virtual bool init();
-
-	//将人物加入地图的函数声明
-	void addPlayer(TMXTiledMap* map);
-
+	//加载
+	void addPlayer_yellow(TMXTiledMap* map);
+	void addPlayer_red(TMXTiledMap* map);
+	void addcollidable(TMXTiledMap* map);
+	void addbombdestroy(TMXTiledMap* map);
+	//炸弹位置补全之坐标转换
+	Point set_tile(int x, int y);
 	//人物移动控制及炸弹控制
 	void onEnter();
 	void keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event* event);
 	void keyReleased(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event* event);
-	void die(float at);
 	bool isPressed(cocos2d::EventKeyboard::KeyCode keycode);
-	virtual void update(float delta);
+	void onEnterTransitionDidFinish();
+	void onExit();
+	void OnExitTransitionDidStart();
+	void cleanup();
+	//计时器
+	//人物
+	virtual void update1(float delta);
+	virtual void update2(float delta);
+	//炸弹位置碰撞
+	void bomb_update(float delta);
+	void bomb2_update(float delta);
 	float x = 0;
 	float y = 0;
+	float x2 = 0;
+	float y2 = 0;
 	void menuItemPopback(Ref* pSender);
-private:
-	LabelTTF* mytime;
-	float ptime=150.0f;
 	// a selector callback
 	// implement the "static create()" method manually
 	CREATE_FUNC(myscene);
 };
 #endif
-
