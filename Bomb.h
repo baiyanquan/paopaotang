@@ -8,7 +8,7 @@ class Bomb
 {
 public:
 	Sprite* creat_bomb(int quality);
-	int my_bomb_quantity = 2;
+	int my_bomb_quantity = 1;
 	void explode(Sprite* object,int quality);
 	void add_my_bomb_quantity();
 	std::vector<Sprite*> sprites_up;

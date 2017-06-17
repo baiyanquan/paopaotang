@@ -22,13 +22,13 @@ bool myscene::init()
 	keys[EventKeyboard::KeyCode::KEY_UP_ARROW] = false;
 	keys[EventKeyboard::KeyCode::KEY_DOWN_ARROW] = false;
 	//加载瓦片地图
-	wo.map = TMXTiledMap::create("tiled/a_map.tmx");
+	map = TMXTiledMap::create("tiled/a_map.tmx");
 	//加载人物
-	addPlayer(wo.map);
+	addPlayer(map);
 	//加载碰撞层
-	addcollidable(wo.map);
+	addcollidable(map);
 	//加载炸毁层
-	addbombdestroy(wo.map);
+	addbombdestroy(map);
 
 	auto visibleSize = Director::getInstance()->getVisibleSize();
 	Vec2 origin = Director::getInstance()->getVisibleOrigin();
@@ -38,9 +38,9 @@ bool myscene::init()
 	background->setScaleY(960.0f / 600.0f);
 	background->setPosition(Vec2(origin.x + visibleSize.width / 2, origin.y + visibleSize.height / 2));
 	this->addChild(background);
-	wo.map->setAnchorPoint(Vec2(0.0, 0.0));
-	wo.map->setPosition(Vec2(20, 41));
-	background->addChild(wo.map, 0);
+	map->setAnchorPoint(Vec2(0.0, 0.0));
+	map->setPosition(Vec2(20, 41));
+	background->addChild(map, 0);
 	mytime = LabelTTF::create();
 	mytime->setScale(2.0f);
 	mytime->setPosition(Vec2(736, 553));
@@ -55,7 +55,7 @@ bool myscene::init()
 	Menu* mu = Menu::create(PopMenuItem, NULL);
 	mu->setPosition(Vec2::ZERO);
 	background->addChild(mu);
-
+	background->addChild(wo.bod.no_use);
 	return true;
 }
 //加载函数
@@ -83,6 +83,7 @@ void myscene::addcollidable(TMXTiledMap* map)
 }
 void myscene::addbombdestroy(TMXTiledMap* map)
 {
+	wo.bod.map = map;
 	wo.bod.meta =map->getLayer("meta");
 	wo.bod.meta->setVisible(false);
 	wo.bod.a_undestroy = map->getLayer("a_undestroy");
@@ -102,25 +103,37 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 	{
 		wo.isMoving = true;
 		keys[keycode] = true;
-		wo.moveright_action();
+		if (wo.life == 1)
+			wo.moveright_action();
+		else
+			wo.wangba_moveright_action();
 	}
 	if ((keycode == EventKeyboard::KeyCode::KEY_LEFT_ARROW) && (wo.isMoving == false))
 	{
 		wo.isMoving = true;
 		keys[keycode] = true;
-		wo.moveleft_action();
+		if (wo.life == 1)
+			wo.moveleft_action();
+		else
+			wo.wangba_moveleft_action();
 	}
 	if ((keycode == EventKeyboard::KeyCode::KEY_UP_ARROW) && (wo.isMoving == false))
 	{
 		wo.isMoving = true;
 		keys[keycode] = true;
-		wo.moveup_action();
+		if (wo.life == 1)
+			wo.moveup_action();
+		else
+			wo.wangba_moveup_action();
 	}
 	if ((keycode == EventKeyboard::KeyCode::KEY_DOWN_ARROW) && (wo.isMoving == false))
 	{
 		wo.isMoving = true;
 		keys[keycode] = true;
-		wo.movedown_action();
+		if (wo.life == 1)
+			wo.movedown_action();
+		else
+			wo.wangba_movedown_action();
 	}
 	//空格炸弹
 	if (keycode == EventKeyboard::KeyCode::KEY_SPACE)
@@ -129,22 +142,30 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 		{
 			--wo.my_bomb.my_bomb_quantity;
 			Sprite* newsp = wo.my_bomb.creat_bomb(wo.my_bomb_range);
-			//炸弹定位
-			newsp->setPosition(set_tile(wo.renwu->getPositionX(), wo.renwu->getPositionY()));
+			//炸弹无重复定位
+			Vec2 pos_now = set_tile(wo.renwu->getPositionX(), wo.renwu->getPositionY());
+			if (wo.former_explode==false&&pos_now == Vec2(x, y))
+			{
+				++wo.my_bomb.my_bomb_quantity;
+				return;
+			}
+			newsp->setPosition(pos_now);
 			//锚点
 			newsp->setAnchorPoint(Point(0, 0));
 			//缩放
 			newsp->setScale(0.9);
 			x = newsp->getPositionX();
 			y = newsp->getPositionY();
-			//炸弹计时判断加入碰撞层（可同时含多个炸弹计时器）
-			this->schedule(schedule_selector(myscene::bomb_update), 0.05f);
+			//炸弹未爆状态
+			wo.former_explode = false;
+			//炸弹计时判断加入碰撞层
+			this->schedule(schedule_selector(myscene::bomb_update), 0.01f);
 
-			wo.range_up = wo.bod.bomb_up(x, y, wo.my_bomb_range);
-			wo.range_down = wo.bod.bomb_down(x, y, wo.my_bomb_range);
-			wo.range_left = wo.bod.bomb_left(x, y, wo.my_bomb_range);
-			wo.range_right = wo.bod.bomb_right(x, y, wo.my_bomb_range);
-			for (int i = 1; i <= wo.range_up; ++i)
+			int range_up = wo.bod.bomb_up(x, y, wo.my_bomb_range);
+			int range_down = wo.bod.bomb_down(x, y, wo.my_bomb_range);
+			int range_left = wo.bod.bomb_left(x, y, wo.my_bomb_range);
+			int range_right = wo.bod.bomb_right(x, y, wo.my_bomb_range);
+			for (int i = 1; i <=range_up; ++i)
 			{
 				//炸波定位,下同
 				wo.my_bomb.sprites_up[i - 1]->setPosition(Vec2(x, y) + Vec2(0, 40 * i));
@@ -153,40 +174,40 @@ void myscene::keyPressed(cocos2d::EventKeyboard::KeyCode keycode, cocos2d::Event
 				//缩放，下同
 				wo.my_bomb.sprites_up[i - 1]->setScale(0.9);
 				//炸波在地图定层，下同
-				wo.map->addChild(wo.my_bomb.sprites_up[i - 1], 4);
+				map->addChild(wo.my_bomb.sprites_up[i - 1], 4);
 
 				wo.my_bomb.sprites_up[i - 1]->runAction(Hide::create());
 			}
-			for (int i = 1; i <= wo.range_down; ++i)
+			for (int i = 1; i <=range_down; ++i)
 			{
 				wo.my_bomb.sprites_down[i - 1]->setPosition(Vec2(x, y) + Vec2(0, -40 * i));
 				wo.my_bomb.sprites_down[i - 1]->setAnchorPoint(Point(0, 0));
 				wo.my_bomb.sprites_down[i - 1]->setScale(0.9);
-				wo.map->addChild(wo.my_bomb.sprites_down[i - 1], 4);
+				map->addChild(wo.my_bomb.sprites_down[i - 1], 4);
 				wo.my_bomb.sprites_down[i - 1]->runAction(Hide::create());
 			}
-			for (int i = 1; i <= wo.range_left; ++i)
+			for (int i = 1; i <=range_left; ++i)
 			{
 				wo.my_bomb.sprites_left[i - 1]->setPosition(Vec2(x, y) + Vec2(-40 * i, 0));
 				wo.my_bomb.sprites_left[i - 1]->setAnchorPoint(Point(0, 0));
 				wo.my_bomb.sprites_left[i - 1]->setScale(0.9);
-				wo.map->addChild(wo.my_bomb.sprites_left[i - 1], 4);
+				map->addChild(wo.my_bomb.sprites_left[i - 1], 4);
 				wo.my_bomb.sprites_left[i - 1]->runAction(Hide::create());
 			}
-			for (int i = 1; i <= wo.range_right; ++i)
+			for (int i = 1; i <=range_right; ++i)
 			{
 				wo.my_bomb.sprites_right[i - 1]->setPosition(Vec2(x, y) + Vec2(40 * i, 0));
 				wo.my_bomb.sprites_right[i - 1]->setAnchorPoint(Point(0, 0));
 				wo.my_bomb.sprites_right[i - 1]->setScale(0.9);
-				wo.map->addChild(wo.my_bomb.sprites_right[i - 1], 4);
+				map->addChild(wo.my_bomb.sprites_right[i - 1], 4);
 				wo.my_bomb.sprites_right[i - 1]->runAction(Hide::create());
 			}
 			//炸弹在地图定层
-			wo.map->addChild(newsp, 4);
+			map->addChild(newsp, 4);
 			//炸弹延时爆炸
 			wo.my_bomb.explode(newsp, wo.my_bomb_range);
-			//延时检测死亡及撤除碰撞层
-			wo.die(x, y);
+			//延时检测爆炸后多种事项
+			wo.die(x, y, range_up, range_down, range_left, range_right);
 		}
 	}
 }
@@ -315,6 +336,14 @@ void myscene::update(float delta)
 		}
 		wo.moveright();
 	}
+	if (wo.is_shoes(map))
+		wo.pick_shoes();
+	if (wo.is_bubble(map))
+		wo.pick_bubble();
+	if (wo.is_medicine(map))
+		wo.pick_medicine();
+	if (wo.is_tortoise(map))
+		wo.pick_tortoise();
 }
 void myscene::bomb_update(float delta)
 {

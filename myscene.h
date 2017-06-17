@@ -10,6 +10,7 @@ USING_NS_CC;
 class myscene : public cocos2d::Scene
 {
 	bazzi wo;
+	TMXTiledMap* map;
 	std::map<cocos2d::EventKeyboard::KeyCode, bool> keys;
 	LabelTTF* mytime;
 	//µ¹¼ÆÊ±µþ¼õ
