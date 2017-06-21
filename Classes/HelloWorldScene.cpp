@@ -1,59 +1,8 @@
 #include "HelloWorldScene.h"
 #include "SimpleAudioEngine.h"
-#include <thread>
 USING_NS_CC;
-char datasend[6] = "00000";
-char datareceieve[6] = "00000";
-char datasend1[6] = "00000";
-myscene* sc;
-DWORD WINAPI ClientRecvThread(LPVOID lpParameter)
-{
-	SOCKET ClientSocket = (SOCKET)lpParameter;
-	int iRet = 0;
-	while (true)
-	{
-		memset(datareceieve, 0x00, 6);
-		iRet = recv(ClientSocket, datareceieve, 500, 0);
-		if (iRet == 0 || iRet == SOCKET_ERROR)
-		{
-			std::cout << "接收消息错误！" << std::endl;
-			break;
-		}
-		std::cout << "接收到信息为：" << datareceieve << std::endl;
-		for (int i = 0; i < 6; i++)
-		{
-			sc->datareceievecopy[i] = datareceieve[i];
-		}
-		sc->receieveaction(datareceieve);
-		sc->receievestop(datareceieve);
-		sc->schedule(schedule_selector(myscene::updateta));
-	}
-	return 0;
-}
-//这个线程处理发送的数据
-DWORD WINAPI ClientSendThread(LPVOID lpParameter)
-{
-	SOCKET ClientSocket = (SOCKET)lpParameter;
-	int iRet = 0;
-	while (true)
-	{
-		if (!(datasend[0] == datasend1[0] && datasend[1] == datasend1[1] && datasend[2] == datasend1[2] && datasend[3] == datasend1[3] && datasend[4] == datasend1[4]))
-		{
-			for (int i = 0; i < 6; i++)
-			{
-				datasend[i] = datasend1[i];
-			}
-			iRet = send(ClientSocket, datasend, 5, 0);
-		}
-		if (iRet == SOCKET_ERROR)
-		{
-			std::cout << "Server::Send Info Error!" << std::endl;
-			break;
-		}
-	}
-	datasend[4] = '0';
-	return 0;
-}
+using namespace CocosDenshion;
+extern int hahaha;
 Scene* HelloWorld::createScene()
 {
 	auto scene = Scene::create();
@@ -82,83 +31,58 @@ bool HelloWorld::init()
 	startMenuItem->setScale(2.0f);
 	startMenuItem->setPosition(origin.x + visibleSize.width / 2, origin.y + visibleSize.height*3 / 4);
 	startMenuItem->setAnchorPoint(Vec2(0.5, 0.5));
-	Menu* mu = Menu::create(startMenuItem, NULL);
+	Sprite* settingSpriteNormal = Sprite::create("settingmenuitem.png", Rect(516, 58, 119, 30));
+	Sprite* settingSpriteSelected = Sprite::create("settingmenuitem.png", Rect(376, 58, 119, 30));
+	MenuItemSprite* settingMenuItem = MenuItemSprite::create(settingSpriteNormal, settingSpriteSelected, CC_CALLBACK_1(HelloWorld::menuItemSettingCallback, this));
+	settingMenuItem->setScale(2.0f);
+	settingMenuItem->setPosition(origin.x + visibleSize.width / 2, origin.y + visibleSize.height * 1 / 2);
+	settingMenuItem->setAnchorPoint(Vec2(0.5, 0.5));
+	Menu* mu = Menu::create(startMenuItem, settingMenuItem, NULL);
 	mu->setPosition(Vec2::ZERO);
 	this->addChild(mu);
+	this->scheduleUpdate();
 	return true;
+}
+void HelloWorld::update(float delta)
+{
+	SimpleAudioEngine::sharedEngine()->setBackgroundMusicVolume(hahaha*0.01);
 }
 void HelloWorld::menuItemStartCallback(Ref* pSender)
 {
-	sc = myscene::createScene();
+	auto sc = myscene::createScene();
 	auto reScene = TransitionShrinkGrow::create(1.0f, sc);
 	Director::getInstance()->pushScene(reScene);
-	std::thread thread1 = std::thread(&HelloWorld::server, this);
-	thread1.detach();
+	SimpleAudioEngine::getInstance()->playEffect("tick.wav");
 }
-void HelloWorld::server()
+void HelloWorld::menuItemSettingCallback(Ref* pSender)
 {
-	WSADATA Ws;
-	SOCKET ServerSocket, ClientSocket;
-	struct sockaddr_in LocalAddr, ClientAddr;
-	int iRet = 0;
-	int AddrLen = 0;
-	HANDLE hThread = NULL;
-	//Init windows socket
-	if (WSAStartup(MAKEWORD(2, 2), &Ws) != 0)
-	{
-		std::cout << "Init Windows Socket Failed::" << GetLastError() << std::endl;
-	}
-	//Create Socket
-	ServerSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (ServerSocket == INVALID_SOCKET)
-	{
-		std::cout << "Create Socket Failed::" << GetLastError() << std::endl;
-	}
-	LocalAddr.sin_family = AF_INET;
-	LocalAddr.sin_addr.s_addr = inet_addr(IP_ADDRESS);
-	LocalAddr.sin_port = htons(PORT);
-	memset(LocalAddr.sin_zero, 0x00, 8);
-	//Bind Socket
-	iRet = bind(ServerSocket, (struct sockaddr*)&LocalAddr, sizeof(LocalAddr));
-	if (iRet != 0)
-	{
-		std::cout << "Bind Socket Failed::" << GetLastError() << std::endl;
-	}
-	iRet = listen(ServerSocket, 10);
-	if (iRet != 0)
-	{
-		std::cout << "Listen Socket Failed !" << GetLastError() << std::endl;
-	}
-	std::cout << "服务端已经启动！" << std::endl;
-	while (true)
-	{
-		AddrLen = sizeof(ClientAddr);
-		ClientSocket = accept(ServerSocket, (struct sockaddr*)&ClientAddr, &AddrLen);
-		if (ClientSocket == INVALID_SOCKET)
-		{
-			std::cout << "Accept Failed::" << GetLastError() << std::endl;
-		}
-		std::cout << "客户端连接::" << inet_ntoa(ClientAddr.sin_addr) << ":" << ClientAddr.sin_port << std::endl;
-		hThread = CreateThread(NULL, 0, ClientRecvThread, (LPVOID)ClientSocket, 0, NULL);
-		if (hThread == NULL)
-		{
-			std::cout << "Create Thread Failed!" << std::endl;
-		}
-		CloseHandle(hThread);
-		hThread = CreateThread(NULL, 0, ClientSendThread, (LPVOID)ClientSocket, 0, NULL);
-		if (hThread == NULL)
-		{
-			std::cout << "Create Thread Failed!" << std::endl;
-		}
-		CloseHandle(hThread);
-	}
-	closesocket(ServerSocket);
-	closesocket(ClientSocket);
-	WSACleanup();
+	auto sc = setting::createScene();
+	auto reScene = TransitionCrossFade::create(1.0f, sc);
+	Director::getInstance()->pushScene(reScene);
+	SimpleAudioEngine::getInstance()->playEffect("tick.wav");
 }
-
-
-
+void HelloWorld::onEnter()
+{
+	Layer::onEnter();
+}
+void HelloWorld::onEnterTransitionDidFinish()
+{
+	Layer::onEnterTransitionDidFinish();
+	SimpleAudioEngine::getInstance()->playBackgroundMusic("background.mp3", true);
+}
+void HelloWorld::onExit()
+{
+	Layer::onExit();
+}
+void HelloWorld::OnExitTransitionDidStart()
+{
+	Layer::onExitTransitionDidStart();
+}
+void HelloWorld::cleanup()
+{
+	Layer::cleanup();
+	SimpleAudioEngine::getInstance()->stopBackgroundMusic("background.mp3");
+}
     #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
     exit(0);
 #endif

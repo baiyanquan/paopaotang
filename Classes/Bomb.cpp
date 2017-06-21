@@ -3,13 +3,14 @@
 #include "SimpleAudioEngine.h"
 
 USING_NS_CC;
+using namespace CocosDenshion;
 Sprite* Bomb::creat_bomb(int quality)
 {
 	sprites_up.clear();
 	sprites_down.clear();
 	sprites_left.clear();
 	sprites_right.clear();
-	Sprite* bomb = Sprite::create("bomb.png", Rect(24, 40, 48, 48));
+	Sprite* bomb = Sprite::create("bomb.png", Rect(28, 42, 40, 41));
 	for (int i = 1; i <= quality; ++i)
 	{
 		if(i!=quality)
@@ -43,6 +44,19 @@ Sprite* Bomb::creat_bomb(int quality)
 void Bomb::explode(Sprite* object , int quality)
 {
 	Animation* animation = Animation::create();
+	Animation* animation1 = Animation::create();
+	animation1->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bomb.png"),
+		CCRectMake(83, 42, 38, 41));
+	animation1->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bomb.png"),
+		CCRectMake(138, 52, 44, 31));
+	animation1->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bomb.png"),
+		CCRectMake(138, 52, 44, 31));
+	animation1->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bomb.png"),
+		CCRectMake(28, 42, 40, 41));
+	animation1->setRestoreOriginalFrame(false);
+	animation1->setDelayPerUnit(1.0 / 8.0);
+	animation1->setLoops(2);
+	Animate* animate1 = Animate::create(animation1);
 	auto delayTime = DelayTime::create(2.0f);
 	animation->addSpriteFrameWithTexture(TextureCache::sharedTextureCache()->addImage("bomb.png"),
 		CCRectMake(28, 114, 40, 40));
@@ -98,7 +112,7 @@ void Bomb::explode(Sprite* object , int quality)
 	Animate* animate_down = Animate::create(animation_down);
 	Animate* animate_left = Animate::create(animation_left);
 	Animate* animate_right = Animate::create(animation_right);
-	object->runAction(Sequence::create(delayTime, animate, CallFunc::create(CC_CALLBACK_0(Bomb::add_my_bomb_quantity, this)), CallFunc::create(CC_CALLBACK_0(Sprite::removeFromParent, object)), NULL));
+	object->runAction(Sequence::create(animate1, animate1, CallFunc::create(CC_CALLBACK_0(Bomb::bomb_music, this)), animate, CallFunc::create(CC_CALLBACK_0(Bomb::add_my_bomb_quantity, this)), CallFunc::create(CC_CALLBACK_0(Sprite::removeFromParent, object)), NULL));
 	for (int i = 1; i <= quality; ++i)
 	{
 		if (i != quality)
@@ -131,4 +145,8 @@ void Bomb::explode(Sprite* object , int quality)
 void Bomb::add_my_bomb_quantity()
 {
 	++my_bomb_quantity;
+}
+void Bomb::bomb_music()
+{
+	SimpleAudioEngine::getInstance()->playEffect("bomb.wav");
 }
